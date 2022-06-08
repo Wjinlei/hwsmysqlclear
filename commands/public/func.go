@@ -1,16 +1,18 @@
 package public
 
-import "database/sql"
+import (
+	"database/sql"
+)
 
-func (conn *connect) QueryTables() ([]string, error) {
-	rows, err := conn.db.Query("SHOW TABLES")
+func (conn *connect) QueryRows(querySql string) (*sql.Rows, func(columnIndex int) string, error) {
+	rows, err := conn.db.Query(querySql)
 	if err != nil {
-		return []string{}, err
+		return nil, nil, err
 	}
 
 	columns, err := rows.Columns()
 	if err != nil {
-		return []string{}, err
+		return nil, nil, err
 	}
 
 	values := make([]sql.RawBytes, len(columns))
@@ -20,23 +22,14 @@ func (conn *connect) QueryTables() ([]string, error) {
 		scanArgs[i] = &values[i]
 	}
 
-	tables := []string{}
-
-	// Fetch rows
-	for rows.Next() {
+	return rows, func(columnIndex int) string {
 		err = rows.Scan(scanArgs...)
 		if err != nil {
-			return []string{}, err
+			return ""
 		}
-
-		for _, col := range values {
-			if col != nil {
-				tables = append(tables, string(col))
-			}
+		if columnIndex > len(values)-1 {
+			return ""
 		}
-	}
-	if err = rows.Err(); err != nil {
-		return tables, err
-	}
-	return tables, nil
+		return string(values[columnIndex])
+	}, nil
 }
