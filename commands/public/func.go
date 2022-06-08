@@ -2,8 +2,8 @@ package public
 
 import "database/sql"
 
-func GetTables(db *sql.DB) ([]string, error) {
-	rows, err := db.Query("SHOW TABLES")
+func (conn *connect) QueryTables() ([]string, error) {
+	rows, err := conn.db.Query("SHOW TABLES")
 	if err != nil {
 		return []string{}, err
 	}

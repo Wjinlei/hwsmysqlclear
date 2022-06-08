@@ -1,7 +1,6 @@
 package run
 
 import (
-	"database/sql"
 	"flag"
 	"fmt"
 
@@ -44,22 +43,17 @@ func init() {
 type run struct{}
 
 func (v *run) PreRun() error {
-	return nil // if error != nil, function Run will be not execute.
+	return public.Connect(opt.user, opt.password, opt.dbname)
 }
 
 func (v *run) Run() error {
-	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@/%s", opt.user, opt.password, opt.dbname))
+	conn, err := public.GetConnect()
 	if err != nil {
 		return err
 	}
-	defer db.Close()
+	defer conn.Close()
 
-	err = db.Ping()
-	if err != nil {
-		return err
-	}
-
-	tables, err := public.GetTables(db)
+	tables, err := conn.QueryTables()
 	if err != nil {
 		return err
 	}
