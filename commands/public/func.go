@@ -10,16 +10,33 @@ func (conn *connect) FindScript(table string) error {
 	if err != nil {
 		return err
 	}
+
 	regularizer := regexp.MustCompile(`(?i)<script.*(</script[^>]*>)?`)
 
-	// Fetch data
 	for rows.Next() {
 		for i := range cols {
-			findCase := regularizer.FindAllString(callback(i), -1)
-			for _, s := range findCase {
-				fmt.Println(s)
+			columnValue := callback(i)
+			findAllCase := regularizer.FindAllString(columnValue, -1)
+			for _, findCase := range findAllCase {
+				conn.replace(table, cols[i], columnValue, findCase, "")
 			}
 		}
+	}
+	return nil
+}
+
+func (conn *connect) replace(table string, column string, value string, oldCase string, newCase string) error {
+	query := fmt.Sprintf("UPDATE `%s` SET `%s` = REPLACE(`%s`, ?, ?) WHERE `%s` = ?", table, column, column, column)
+
+	stmt, err := conn.db.Prepare(query)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(oldCase, newCase, value)
+	if err != nil {
+		return err
 	}
 	return nil
 }

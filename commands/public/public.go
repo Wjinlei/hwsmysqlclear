@@ -40,14 +40,15 @@ func (conn *connect) QueryRows(querySql string) (rows *sql.Rows, columns []strin
 
 	// Return the Closure function
 	return rows, columns, func(columnIndex int) string {
-		if columnIndex > len(values)-1 {
-			return fmt.Sprintf("error: Bad column index %d", columnIndex)
-		}
-		if err := rows.Scan(valuesReferences...); err != nil {
-			return err.Error()
-		}
-		return string(values[columnIndex])
-	}, nil
+			if columnIndex > len(values)-1 {
+				return fmt.Sprintf("error: Bad column index %d", columnIndex)
+			}
+			if err := rows.Scan(valuesReferences...); err != nil {
+				return err.Error()
+			}
+			return string(values[columnIndex])
+		},
+		nil
 }
 
 func Connect(dbUser, dbPass, dbName string) error {
