@@ -2,16 +2,9 @@ package public
 
 import (
 	"fmt"
-	"regexp"
 
 	"github.com/Wjinlei/golib"
 )
-
-var regularizer *regexp.Regexp
-
-func init() {
-	regularizer = regexp.MustCompile(`(?i)<script.*(</script[^>]*>)?`)
-}
 
 func (conn *connect) FindScript(table string) error {
 	rows, columns, callback, err := conn.QueryRows("SELECT * FROM `" + table + "`")
@@ -46,8 +39,7 @@ func (conn *connect) replace(table string, id string, column string, value strin
 	}
 
 	// Log
-	today := golib.FormatNowTime("2006-01-02")
-	content := fmt.Sprintf("[%s] 表: %s\t字段: %s\t标识: %s\t原内容: %s\n", today, table, column, id, value)
-	golib.FileWrite(today+".log", content, golib.FileAppend)
+	content := fmt.Sprintf("[%s] 表: %s\t字段: %s\t标识: %s\t原内容: %s\n", golib.GetNowTime(), table, column, id, value)
+	golib.FileWrite(Logfile, content, golib.FileAppend)
 	return nil
 }

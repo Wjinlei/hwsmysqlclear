@@ -2,7 +2,10 @@ package run
 
 import (
 	"flag"
+	"fmt"
+	"time"
 
+	"github.com/Wjinlei/golib"
 	"github.com/Wjinlei/hwsmysqlclear/commands/public"
 	"github.com/genshen/cmds"
 	_ "github.com/go-sql-driver/mysql"
@@ -46,6 +49,9 @@ func (v *run) PreRun() error {
 }
 
 func (v *run) Run() error {
+	now := time.Now()
+	public.Logfile = golib.FormatNowTime("2006-01-02") + ".log"
+
 	conn, err := public.GetConnect()
 	if err != nil {
 		return err
@@ -60,5 +66,8 @@ func (v *run) Run() error {
 	for tables.Next() {
 		conn.FindScript(callback(0))
 	}
+
+	golib.FileWrite(public.Logfile, fmt.Sprintf("[%s] 扫描耗时: %v\n", golib.GetNowTime(), time.Since(now)), golib.FileAppend)
+	golib.FileWrite(public.Logfile, "------------------------------------------------\n", golib.FileAppend)
 	return nil
 }
