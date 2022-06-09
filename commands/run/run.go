@@ -53,13 +53,16 @@ func (v *run) Run() error {
 	}
 	defer conn.Close()
 
-	rows, callback, err := conn.QueryRows("SHOW TABLES")
+	rows, columns, callback, err := conn.QueryRows("SHOW TABLES")
 	if err != nil {
 		return err
 	}
-	
+
 	for rows.Next() {
-		fmt.Println(callback(0))
+		for i := range columns {
+			fmt.Println(columns[i], ": ", callback(i))
+		}
+		fmt.Println("--------------------------")
 	}
 	return nil
 }
