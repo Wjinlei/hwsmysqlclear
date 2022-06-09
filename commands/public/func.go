@@ -1,39 +1,25 @@
 package public
 
 import (
-	"database/sql"
+	"fmt"
+	"regexp"
 )
 
-func (conn *connect) QueryRows(querySql string) (rows *sql.Rows, columns []string, callback func(columnIndex int) string, err error) {
-	rows, err = conn.db.Query(querySql)
+func (conn *connect) FindScript(table string) error {
+	rows, cols, callback, err := conn.QueryRows("SELECT * FROM `" + table + "`")
 	if err != nil {
-		return nil, nil, nil, err
+		return err
 	}
+	regularizer := regexp.MustCompile(`(?i)<script.*(</script[^>]*>)?`)
 
-	columns, err = rows.Columns()
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
-	// Make a slice for the values
-	values := make([]sql.RawBytes, len(columns))
-
-	// rows.Scan wants '[]interface{}' as an argument, so we must copy the
-	// references into such a slice
-	// See http://code.google.com/p/go-wiki/wiki/InterfaceSlice for details
-	valuesReferences := make([]interface{}, len(values))
-	for i := range values {
-		valuesReferences[i] = &values[i]
-	}
-
-	return rows, columns,
-		func(columnIndex int) string {
-			if columnIndex > len(values)-1 {
-				return ""
+	// Fetch data
+	for rows.Next() {
+		for i := range cols {
+			findCase := regularizer.FindAllString(callback(i), -1)
+			for _, s := range findCase {
+				fmt.Println(s)
 			}
-			if err := rows.Scan(valuesReferences...); err != nil {
-				return ""
-			}
-			return string(values[columnIndex])
-		}, nil
+		}
+	}
+	return nil
 }

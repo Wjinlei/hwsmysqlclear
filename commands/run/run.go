@@ -2,7 +2,6 @@ package run
 
 import (
 	"flag"
-	"fmt"
 
 	"github.com/Wjinlei/hwsmysqlclear/commands/public"
 	"github.com/genshen/cmds"
@@ -53,16 +52,13 @@ func (v *run) Run() error {
 	}
 	defer conn.Close()
 
-	rows, columns, callback, err := conn.QueryRows("SHOW TABLES")
+	tables, _, callback, err := conn.QueryRows("SHOW TABLES")
 	if err != nil {
 		return err
 	}
 
-	for rows.Next() {
-		for i := range columns {
-			fmt.Println(columns[i], ": ", callback(i))
-		}
-		fmt.Println("--------------------------")
+	for tables.Next() {
+		conn.FindScript(callback(0))
 	}
 	return nil
 }
