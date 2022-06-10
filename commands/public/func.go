@@ -13,33 +13,36 @@ func (conn *connect) FindScript(table string) error {
 	}
 
 	for rows.Next() {
-		// Take the 0th field as the unique identifier
-		id := fmt.Sprintf("%s=%s", columns[0], callback(0))
-
+		whereId := columns[0]
+		whereIdVal := callback(0)
 		for i := range columns {
-			value := callback(i)
-			for _, findCase := range regularizer.FindAllString(value, -1) {
-				conn.replace(table, id, columns[i], value, findCase, "")
+			columnValue := callback(i)
+			for _, findCase := range regularizer.FindAllString(columnValue, -1) {
+				conn.update(table, whereId, whereIdVal, columns[i], columnValue, findCase, "")
 			}
 		}
 	}
 	return nil
 }
 
-func (conn *connect) replace(table string, id string, column string, value string, oldCase string, newCase string) error {
-	query := fmt.Sprintf("UPDATE `%s` SET `%s` = REPLACE(`%s`, ?, ?) WHERE `%s` = ?", table, column, column, column)
-	stmt, err := conn.db.Prepare(query)
+// Update oldCase to newCase
+func (conn *connect) update(table string, whereId, whereIdVal string, field, value string, oldCase string, newCase string) error {
+	stmt, err := conn.db.Prepare("UPDATE `" + table + "` SET `" + field + "` = REPLACE(`" + field + "`, ?, ?) WHERE `" + whereId + "` = ?")
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
-	_, err = stmt.Exec(oldCase, newCase, value)
+	_, err = stmt.Exec(oldCase, newCase, whereIdVal)
 	if err != nil {
 		return err
 	}
 
-	// Log
-	content := fmt.Sprintf("[%s] 表: %s\t字段: %s\t标识: %s\t原内容: %s\n", golib.GetNowTime(), table, column, id, value)
-	golib.FileWrite(Logfile, content, golib.FileAppend)
+	// Write Log
+	golib.FileWrite(
+		Logfile,
+		fmt.Sprintf("[%s] 表: %s\t字段: %s\t标识: %s\t原内容: %s\n",
+			golib.GetNowTime(), table, field, whereId+"="+whereIdVal, value),
+		golib.FileAppend)
+
 	return nil
 }
