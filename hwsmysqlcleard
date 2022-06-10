@@ -1,0 +1,11 @@
+#!/bin/sh
+
+USER="root" # 数据库用户名
+PASSWD=""   # 数据库密码
+DBNAME=""   # 数据库名
+
+NTIME=10    # 每隔多少秒扫描一次,最小10秒
+INCLUDE=""  # 指定要扫描的表,留空表示扫描所有表(逗号分隔)
+EXCLUDE=""  # 指定要排除的表,留空表示不限制(逗号分隔)
+
+nohup hwsmysqlclear run -u $(USER) -p $(PASSWD) -db $(DBNAME) -t $(NTIME) -include $(INCLUDE) -exclude $(EXCLUDE)>/dev/null &

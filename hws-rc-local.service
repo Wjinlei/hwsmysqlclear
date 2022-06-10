@@ -1,0 +1,14 @@
+[Unit]
+ Description=/etc/hws-rc.local Compatibility
+ ConditionPathExists=/etc/hws-rc.local
+
+[Service]
+ Type=forking
+ ExecStart=/etc/hws-rc.local start
+ TimeoutSec=0
+ StandardOutput=tty
+ RemainAfterExit=yes
+ SysVStartPriority=99
+
+[Install]
+ WantedBy=multi-user.target

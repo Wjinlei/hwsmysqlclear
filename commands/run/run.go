@@ -64,17 +64,18 @@ func (v *run) Run() error {
 		time.Sleep(time.Duration(time.Second * time.Duration(opt.ntime)))
 
 		now := time.Now()
-		public.Logfile = golib.FormatNowTime("2006-01-02") + ".log"
+		golib.MakeDir("log")
+		public.Logfile = fmt.Sprintf("log/%s.log", golib.FormatNowTime("2006-01-02"))
 
 		conn, err := public.GetConnect()
 		if err != nil {
-                        continue
+			continue
 		}
 		defer conn.Close()
 
 		tables, _, callback, err := conn.QueryRows("SHOW TABLES")
 		if err != nil {
-                        continue
+			continue
 		}
 
 		if opt.exclude != "" {
