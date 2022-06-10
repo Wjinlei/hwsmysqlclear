@@ -42,9 +42,9 @@ func init() {
 	runCommand.FlagSet.StringVar(&opt.user, "u", "root", `username`)
 	runCommand.FlagSet.StringVar(&opt.password, "p", "", `password`)
 	runCommand.FlagSet.StringVar(&opt.dbname, "db", "", `database name`)
+	runCommand.FlagSet.Int64Var(&opt.ntime, "t", 10, `How many seconds between scans`)
 	runCommand.FlagSet.StringVar(&opt.include, "include", "", `Include tables, comma separated`)
 	runCommand.FlagSet.StringVar(&opt.exclude, "exclude", "", `Exclude tables, comma separated`)
-	runCommand.FlagSet.Int64Var(&opt.ntime, "t", 10, `How many seconds between scans`)
 	runCommand.FlagSet.Usage = runCommand.Usage // use default usage provided by cmds.Command.
 	cmds.AllCommands = append(cmds.AllCommands, runCommand)
 }
