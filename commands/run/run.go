@@ -61,19 +61,36 @@ func (v *run) Run() error {
 	}
 
 	for {
+		time.Sleep(time.Duration(time.Second * time.Duration(opt.ntime)))
+
 		now := time.Now()
 		public.Logfile = golib.FormatNowTime("2006-01-02") + ".log"
 
 		conn, err := public.GetConnect()
 		if err != nil {
-			return err
+                        continue
 		}
 		defer conn.Close()
 
 		tables, _, callback, err := conn.QueryRows("SHOW TABLES")
 		if err != nil {
-			return err
+                        continue
 		}
+
+		if opt.exclude != "" {
+			golib.FileWrite(
+				public.Logfile,
+				fmt.Sprintf("排除表: %v\n", opt.exclude),
+				golib.FileAppend)
+		}
+		if opt.include != "" {
+			golib.FileWrite(
+				public.Logfile,
+				fmt.Sprintf("指定表: %v\n", opt.include),
+				golib.FileAppend)
+		}
+		golib.FileWrite(public.Logfile, "------------------------------------------------\n", golib.FileAppend)
+
 		for tables.Next() {
 			table := callback(0)
 			if contains(strings.Split(opt.exclude, ","), table) {
@@ -90,19 +107,6 @@ func (v *run) Run() error {
 			}
 		}
 
-		if opt.exclude != "" {
-			golib.FileWrite(
-				public.Logfile,
-				fmt.Sprintf("排除表: %v\n", opt.exclude),
-				golib.FileAppend)
-		}
-		if opt.include != "" {
-			golib.FileWrite(
-				public.Logfile,
-				fmt.Sprintf("指定表: %v\n", opt.include),
-				golib.FileAppend)
-		}
-		golib.FileWrite(public.Logfile, "------------------------------------------------\n", golib.FileAppend)
 		golib.FileWrite(
 			public.Logfile,
 			fmt.Sprintf("[%s] 扫描耗时: %v\n",
@@ -111,8 +115,6 @@ func (v *run) Run() error {
 			golib.FileAppend)
 		golib.FileWrite(public.Logfile, "------------------------------------------------\n", golib.FileAppend)
 		golib.FileWrite(public.Logfile, "\n", golib.FileAppend)
-
-		time.Sleep(time.Duration(time.Second * time.Duration(opt.ntime)))
 	}
 }
 

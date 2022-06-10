@@ -73,6 +73,9 @@ func SetConnect(db *sql.DB, dbUser, dbPass, dbName string) {
 
 func GetConnect() (*connect, error) {
 	if conn.db != nil {
+		if err := conn.db.Ping(); err != nil {
+			return nil, err
+		}
 		return &conn, nil
 	}
 	return nil, errors.New("GetConnect fail. db is nil")
