@@ -29,6 +29,7 @@ type Option struct {
 	dbname   string
 	include  string // Include tables, comma separated
 	exclude  string // Exclude tables, comma separated
+	ntime    int64  // How many seconds between scans
 }
 
 var opt Option
@@ -43,6 +44,7 @@ func init() {
 	runCommand.FlagSet.StringVar(&opt.dbname, "db", "", `database name`)
 	runCommand.FlagSet.StringVar(&opt.include, "include", "", `Include tables, comma separated`)
 	runCommand.FlagSet.StringVar(&opt.exclude, "exclude", "", `Exclude tables, comma separated`)
+	runCommand.FlagSet.Int64Var(&opt.ntime, "t", 10, `How many seconds between scans`)
 	runCommand.FlagSet.Usage = runCommand.Usage // use default usage provided by cmds.Command.
 	cmds.AllCommands = append(cmds.AllCommands, runCommand)
 }
@@ -54,46 +56,64 @@ func (v *run) PreRun() error {
 }
 
 func (v *run) Run() error {
-	now := time.Now()
-	public.Logfile = golib.FormatNowTime("2006-01-02") + ".log"
-
-	conn, err := public.GetConnect()
-	if err != nil {
-		return err
+	if opt.ntime < 10 {
+		opt.ntime = 10
 	}
-	defer conn.Close()
 
-	tables, _, callback, err := conn.QueryRows("SHOW TABLES")
-	if err != nil {
-		return err
-	}
-	for tables.Next() {
-		table := callback(0)
-		if contains(strings.Split(opt.exclude, ","), table) {
-			continue
+	for {
+		now := time.Now()
+		public.Logfile = golib.FormatNowTime("2006-01-02") + ".log"
+
+		conn, err := public.GetConnect()
+		if err != nil {
+			return err
+		}
+		defer conn.Close()
+
+		tables, _, callback, err := conn.QueryRows("SHOW TABLES")
+		if err != nil {
+			return err
+		}
+		for tables.Next() {
+			table := callback(0)
+			if contains(strings.Split(opt.exclude, ","), table) {
+				continue
+			}
+
+			if opt.include == "" {
+				conn.FindScript(table)
+				continue
+			}
+
+			if contains(strings.Split(opt.include, ","), table) {
+				conn.FindScript(table)
+			}
 		}
 
-		if opt.include == "" {
-			conn.FindScript(table)
-			continue
+		if opt.exclude != "" {
+			golib.FileWrite(
+				public.Logfile,
+				fmt.Sprintf("排除表: %v\n", opt.exclude),
+				golib.FileAppend)
 		}
-
-		if contains(strings.Split(opt.include, ","), table) {
-			conn.FindScript(table)
+		if opt.include != "" {
+			golib.FileWrite(
+				public.Logfile,
+				fmt.Sprintf("指定表: %v\n", opt.include),
+				golib.FileAppend)
 		}
-	}
+		golib.FileWrite(public.Logfile, "------------------------------------------------\n", golib.FileAppend)
+		golib.FileWrite(
+			public.Logfile,
+			fmt.Sprintf("[%s] 扫描耗时: %v\n",
+				golib.GetNowTime(),
+				time.Since(now)),
+			golib.FileAppend)
+		golib.FileWrite(public.Logfile, "------------------------------------------------\n", golib.FileAppend)
+		golib.FileWrite(public.Logfile, "\n", golib.FileAppend)
 
-	if opt.exclude != "" {
-		golib.FileWrite(public.Logfile, fmt.Sprintf("排除表: %v\n", opt.exclude), golib.FileAppend)
+		time.Sleep(time.Duration(time.Second * time.Duration(opt.ntime)))
 	}
-	if opt.include != "" {
-		golib.FileWrite(public.Logfile, fmt.Sprintf("指定表: %v\n", opt.include), golib.FileAppend)
-	}
-	golib.FileWrite(public.Logfile, "------------------------------------------------\n", golib.FileAppend)
-	golib.FileWrite(public.Logfile, fmt.Sprintf("[%s] 扫描耗时: %v\n", golib.GetNowTime(), time.Since(now)), golib.FileAppend)
-	golib.FileWrite(public.Logfile, "------------------------------------------------\n", golib.FileAppend)
-	golib.FileWrite(public.Logfile, "\n", golib.FileAppend)
-	return nil
 }
 
 func contains(keys []string, key string) bool {
