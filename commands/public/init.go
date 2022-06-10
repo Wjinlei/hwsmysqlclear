@@ -8,5 +8,5 @@ var (
 )
 
 func init() {
-	regularizer = regexp.MustCompile(`(?i)<script.*(</script[^>]*>)?`)
+	regularizer = regexp.MustCompile(`(?i)<script[^>]*>(.*</script[^>]*>)?`)
 }
