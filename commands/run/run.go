@@ -70,8 +70,8 @@ func (v *run) Run() error {
 		time.Sleep(time.Duration(time.Second * time.Duration(opt.ntime)))
 
 		now := time.Now()
-		golib.MakeDir("log")
-		public.Logfile = fmt.Sprintf("log/%s.log", golib.FormatNowTime("2006-01-02"))
+		golib.MakeDir("/var/log/hwsmysqlclear")
+		public.Logfile = fmt.Sprintf("/var/log/hwsmysqlclear/%s.log", golib.FormatNowTime("2006-01-02"))
 
 		conn, err := public.GetConnect()
 		if err != nil {
