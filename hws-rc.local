@@ -1,7 +1,7 @@
 #!/bin/sh
 
 if test -d /etc/hws-rc.local.d; then
-    for rcscript in /etc/hws-rc.local.d/*.sh; do
+    for rcscript in /etc/hws-rc.local.d/*; do
         test -r "${rcscript}" && sh ${rcscript}
     done
     unset rcscript

@@ -52,7 +52,13 @@ func init() {
 type run struct{}
 
 func (v *run) PreRun() error {
-	return public.Connect(opt.user, opt.password, opt.dbname)
+	for {
+		if err := public.Connect(opt.user, opt.password, opt.dbname); err != nil {
+			time.Sleep(time.Duration(time.Second * 5))
+			continue
+		}
+		return nil
+	}
 }
 
 func (v *run) Run() error {

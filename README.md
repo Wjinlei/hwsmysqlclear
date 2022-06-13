@@ -15,7 +15,10 @@ CC=/usr/local/musl/bin/musl-gcc go build -a -ldflags '-s -w -linkmode "external"
 
 ## Install
 - 修改 `hwsmysqlcleard` 填写你的MYSQL帐号密码
-- 运行 `sudo make install`
+- `sudo make install`
+
+## Uninstall
+- `sudo make uninstall`
 
 ## Command
 如果某位不写，则为默认值

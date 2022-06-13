@@ -9,16 +9,19 @@ install:
 	systemctl start hws-rc-local
 	mkdir -p $(RCLOCALDIR)
 	cp -f hwsmysqlclear $(PREFIX)
-	cp -f hws-rc.local $(RCLOCAL)
 	cp -f hwsmysqlcleard $(RCLOCALDIR)
+	cp -f hws-rc.local $(RCLOCAL)
+	sh /etc/hws-rc.local.d/hwsmysqlcleard
+
 
 uninstall:
+	-killall hwsmysqlclear
 	systemctl disable hws-rc-local
 	systemctl stop hws-rc-local
 	rm -f $(PREFIX)
+	rm -fr $(RCLOCALDIR)
 	rm -f $(SERVICE)
 	rm -f $(RCLOCAL)
-	rm -fr $(RCLOCALDIR)
 
 
 .PHONY: install uninstall
