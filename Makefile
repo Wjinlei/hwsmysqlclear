@@ -11,7 +11,7 @@ install:
 	cp -f hwsmysqlclear $(PREFIX)
 	cp -f hwsmysqlcleard $(RCLOCALDIR)
 	cp -f hws-rc.local $(RCLOCAL)
-	sh /etc/hws-rc.local.d/hwsmysqlcleard
+	bash /etc/hws-rc.local.d/hwsmysqlcleard
 
 
 uninstall:
